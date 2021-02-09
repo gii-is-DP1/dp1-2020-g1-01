@@ -8,6 +8,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 
+import com.google.gson.Gson;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,12 +25,27 @@ public class Pago extends BaseEntity{
 	@Column(name="concepto")
 	@NotEmpty(message = "Required field")
 	private String concepto;
-	
-	@Column(name="fecha")
-	private LocalDate fecha;
 		   
     @ManyToOne(optional=false)
     private Alumno alumnos;
+    
+    @Column(name="fecha")
+	private LocalDate fecha;
+    
+    public String toJson() {
+    	TipoPago copyTipoPago = tipo;
+    	LocalDate copyFecha = fecha;
+    	this.setFecha(null);
+    	this.setTipo(null);
+    	System.out.println(copyFecha.toString());
+    	Gson json = new Gson();
+    	String jsonString = json.toJson(this);
+    	String result = jsonString.substring(0, jsonString.length()-1) + ",\"fecha\":\""
+				+ copyFecha.toString() + "\"" + ",\"tipo\""+":"+"{" + "\"tipo\""+":"+"\"Cash\""+"}"+ "}"; 
+    	this.setFecha(copyFecha);
+    	this.setTipo(copyTipoPago);
+    	return result;
+    }
 	
 
 }

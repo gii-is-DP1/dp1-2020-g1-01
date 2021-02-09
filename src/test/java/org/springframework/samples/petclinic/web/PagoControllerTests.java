@@ -54,11 +54,11 @@ public class PagoControllerTests {
 	
 	@MockBean
 	private AlumnoService alumnoService;
-	
+	private Alumno alumno;
 	@BeforeEach
 	void setup() {
 		p = new Pago();
-		Alumno alumno = new Alumno();
+		alumno = new Alumno();
 		alumno.setNickUsuario("JaviMartinez7");
 		alumno.setContraseya("JaviKuka787");
 		alumno.setDniUsuario("45676787Y");
@@ -162,25 +162,100 @@ public class PagoControllerTests {
 	@WithMockUser(value = "spring")
 	@Test
 	void testCreatePayment() throws Exception{
+		Pago p = new Pago();
+		p.setConcepto("Viaje a la nada");
+		TipoPago tipoPago = tipoPagoService.getType("Bizum");
+		p.setTipo(tipoPago);
+		System.out.println("ESTE ES EL TIPO: " + tipoPago);
+		p.setFecha(LocalDate.of(2020, 12, 12));
+		Alumno a  = new Alumno();
+		a.setNickUsuario("JaviMartinez7");
+		p.setAlumnos(a);
+		given(alumnoService.getAlumno("JaviMartinez7")).willReturn(alumno);
 		
+		mockMvc.perform(post("/pagos/new")
+				.contentType(MediaType.APPLICATION_JSON)
+			    .content(p.toJson())
+			    .with(csrf()))
+		.andExpect(status().isCreated());
 	}
-	/*
-	 * @WithMockUser(value = "spring")
-	 * 
-	 * @Test void testSendingNewPaymentSuccesIfLoggedAsAlumno() throws Exception{
-	 * Gson gson = new Gson(); String jsonString = gson.toJson(p);
-	 * log.info("Informa: "+jsonString);
-	 * 
-	 * mockMvc.perform(post("/pagos/new") .contentType(MediaType.APPLICATION_JSON)
-	 * .content(jsonString) .with(csrf()).sessionAttr("type", "alumno"))
-	 * .andExpect(status().isUnauthorized());
-	 * 
-	 * // Gson gson = new Gson(); // String jsonString = gson.toJson(g);
-	 * 
-	 * // mockMvc.perform(post("/grupos/new") //
-	 * .contentType(MediaType.APPLICATION_JSON) // .content(jsonString) //
-	 * .with(csrf()).sessionAttr("type",
-	 * "alumno")).andExpect(status().isUnauthorized()); }
-	 */
+	
+	@WithMockUser(value = "spring")
+	@Test
+	void testCreatePaymentNotOK() throws Exception{
+		Pago p = new Pago();
+		p.setConcepto("");
+		TipoPago tipoPago = tipoPagoService.getType("Bizum");
+		p.setTipo(tipoPago);
+		System.out.println("ESTE ES EL TIPO: " + tipoPago);
+		p.setFecha(LocalDate.of(2020, 12, 12));
+		Alumno a  = new Alumno();
+		a.setNickUsuario("JaviMartinez7");
+		p.setAlumnos(a);
+		given(alumnoService.getAlumno("JaviMartinez7")).willReturn(alumno);
+		
+		mockMvc.perform(post("/pagos/new")
+				.contentType(MediaType.APPLICATION_JSON)
+			    .content(p.toJson())
+			    .with(csrf()))
+		.andExpect(status().isNonAuthoritativeInformation());
+	}
+	
+	@WithMockUser(value = "spring")
+	@Test
+	void testCreatePaymentNotOK2() throws Exception{
+		Pago p = new Pago();
+		p.setConcepto("Viaje");
+		TipoPago tipoPago = tipoPagoService.getType("Bizum");
+		p.setTipo(tipoPago);
+		p.setFecha(LocalDate.of(2020, 12, 12));
+		Alumno a  = new Alumno();
+		a.setNickUsuario("JaviMartinez7");
+		p.setAlumnos(a);
+		given(alumnoService.getAlumno("JaviMartinez7")).willReturn(null);
+		
+		mockMvc.perform(post("/pagos/new")
+				.contentType(MediaType.APPLICATION_JSON)
+			    .content(p.toJson())
+			    .with(csrf()))
+		.andExpect(status().isNoContent());
+	}
+	
+	@WithMockUser(value = "spring")
+	@Test
+	void testCreatePaymentNotOK3() throws Exception{
+		Pago p = new Pago();
+		p.setConcepto("Viaje");
+		TipoPago tipoPago = tipoPagoService.getType("Bizum");
+		p.setTipo(tipoPago);
+		p.setFecha(LocalDate.of(2020, 12, 12));
+		Alumno a  = new Alumno();
+		a.setNickUsuario("");
+		p.setAlumnos(a);		
+		mockMvc.perform(post("/pagos/new")
+				.contentType(MediaType.APPLICATION_JSON)
+			    .content(p.toJson())
+			    .with(csrf()))
+		.andExpect(status().isNonAuthoritativeInformation());
+	}
+	
+	@WithMockUser(value = "spring")
+	@Test
+	void testCreatePaymentNotOK4() throws Exception{
+		Pago p = new Pago();
+		p.setConcepto("Viaje");
+		TipoPago tipoPago = tipoPagoService.getType("");
+		p.setTipo(tipoPago);
+		p.setFecha(LocalDate.of(2020, 12, 12));
+		Alumno a  = new Alumno();
+		a.setNickUsuario("JaviMartinez");
+		p.setAlumnos(a);		
+		mockMvc.perform(post("/pagos/new")
+				.contentType(MediaType.APPLICATION_JSON)
+			    .content(p.toJson())
+			    .with(csrf()))
+		.andExpect(status().isNonAuthoritativeInformation());
+	}
+	
 
 }
